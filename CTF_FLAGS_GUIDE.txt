@@ -1,0 +1,78 @@
+
+===============================================================================
+                    BIT_HACKERS CTF - FLAG REFERENCE GUIDE
+===============================================================================
+                         Total Flags: 10  |  Max Score: 440
+===============================================================================
+
+
+#   FLAG                              PTS   DIFF     PATH                              COMMAND TO FIND IT
+--- --------------------------------- ----- -------- --------------------------------- -----------------------------------------------
+1   FLAG{USER_ACCESS_GRANTED}          10   Easy     /home/user/user.txt               cat user.txt
+2   FLAG{HISTORY_REVEALS_SECRETS}      15   Easy     /home/user/.bash_history           ls -a  →  cat .bash_history
+3   FLAG{HIDDEN_WEB_CONFIG}            25   Medium   /var/www/html/.htaccess            cd /var/www/html  →  ls -a  →  cat .htaccess
+4   FLAG{LOGS_ARE_IMPORTANT}           30   Medium   /var/log/secret.log                cd /var/log  →  ls  →  cat secret.log
+5   FLAG{HIDDEN_IN_PLAIN_SIGHT}        35   Medium   /home/user/documents/.classified   cd documents  →  ls -a  →  cat .classified
+6   FLAG{TEMP_FILES_MATTER}            40   Medium   /tmp/.cache_key                    cd /tmp  →  ls -a  →  cat .cache_key
+7   FLAG{ROOT_PRIVILEGE_ESCALATION}    50   Hard     /root/root.txt                     cd /root  →  cat root.txt
+8   FLAG{PERSISTENCE_MECHANISM}        60   Hard     /etc/cron.d/.backdoor              cd /etc/cron.d  →  ls -a  →  cat .backdoor
+9   FLAG{SSH_KEY_COMPROMISED}          75   Hard     /root/.ssh/id_rsa                  cd /root/.ssh  →  ls -a  →  cat id_rsa
+10  FLAG{ALWAYS_CHECK_BACKUPS}        100   Expert   /etc/shadow.bak                    cd /etc  →  ls  →  cat shadow.bak
+
+
+===============================================================================
+                              HOW TO SUBMIT FLAGS
+===============================================================================
+
+  METHOD 1 (Auto Capture):
+    Just use "cat" on the file. The flag is automatically detected.
+      Example:  cat user.txt
+
+  METHOD 2 (Manual Submit):
+    Use the "submit" command with the flag text.
+      Example:  submit FLAG{USER_ACCESS_GRANTED}
+
+  VIEW YOUR SCORE:
+    Type "score" in the terminal to see your scoreboard.
+
+
+===============================================================================
+                            HINTS FOR FINDING FLAGS
+===============================================================================
+
+  EASY FLAGS (1-2):
+    - Start in your home directory. Look around with "ls".
+    - Hidden files start with a dot. Use "ls -a" to see them.
+
+  MEDIUM FLAGS (3-6):
+    - Explore common Linux directories: /var/log, /var/www, /tmp
+    - Always check for hidden files with "ls -a" in every directory.
+    - User documents might have secrets tucked away.
+
+  HARD FLAGS (7-9):
+    - Think privilege escalation - check /root
+    - Cron jobs can hide persistence mechanisms - check /etc/cron.d
+    - SSH keys are always valuable targets - look in .ssh folders
+
+  EXPERT FLAG (10):
+    - Backup files (.bak) often contain sensitive data.
+    - System authentication files like /etc/shadow are high value.
+
+===============================================================================
+                           USEFUL COMMANDS REFERENCE
+===============================================================================
+
+  ls              List files in current directory
+  ls -a           List ALL files (including hidden dot files)
+  ls -l           List files with details (permissions, size, date)
+  cd <dir>        Change to directory
+  cd ..           Go up one directory
+  cat <file>      Read a file (auto-captures flags)
+  pwd             Show current directory
+  submit <flag>   Manually submit a flag
+  score           View your CTF scoreboard
+  help            Show all available commands
+  history         Show command history
+  msg <text>      Send a message to the admin
+
+===============================================================================
