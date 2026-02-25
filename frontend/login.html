@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSH Remote Login</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+        }
+
+        .login-box {
+            background: #111;
+            border: 1px solid #333;
+            padding: 30px;
+            width: 400px;
+            font-family: 'Courier New', Courier, monospace;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #00ff00;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #222;
+            border: 1px solid #444;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #00ff00;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #00cc00;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-box">
+        <h2>SSH SECURE SHELL</h2>
+        <div id="login-form">
+            <input type="text" id="username" placeholder="username" value="root">
+            <input type="password" id="password" placeholder="password">
+            <button onclick="attemptLogin()">CONNECT</button>
+            <div class="error" id="error-msg">Access Denied</div>
+        </div>
+    </div>
+
+    <script>
+        function attemptLogin() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            // This is a honeypot, so ANY login works!
+            // But we can simulate a delay or check specific credentials if we want.
+            // For now, let's just let them in.
+
+            if (user && pass) {
+                // Save basic session info (in reality backend handles this)
+                sessionStorage.setItem('attacker_user', user);
+                // Use password as the alias/display name as requested
+                sessionStorage.setItem('attacker_alias', pass);
+                window.location.href = 'index.html';
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+
+</html>

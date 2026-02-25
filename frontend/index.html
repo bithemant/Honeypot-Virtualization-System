@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bit_Hackers Terminal</title>
+    <!-- Xterm.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Bit_Hackers // REMOTE_ACCESS</h1>
+            <div class="status">STATUS: <span id="connection-status">DISCONNECTED</span></div>
+        </header>
+
+        <!-- CTF Score Bar -->
+        <div id="score-bar"
+            style="display:flex; align-items:center; justify-content:space-between; padding:6px 15px; background:#0a0a0a; border:1px solid #222; border-radius:4px; margin-bottom:5px; font-size:0.85em;">
+            <span style="color:#00ff00;" id="score-display">SCORE: 0</span>
+            <div style="flex:1; margin:0 15px; background:#222; height:6px; border-radius:3px;">
+                <div id="score-progress"
+                    style="background:linear-gradient(90deg,#00ff00,#00cc00); height:100%; width:0%; border-radius:3px; transition:width 0.5s;">
+                </div>
+            </div>
+            <span style="color:#ff6600;" id="flags-display">FLAGS: 0/10</span>
+        </div>
+
+        <div class="terminal-container">
+            <div id="terminal"></div>
+        </div>
+
+        <div class="logs-panel">
+            <h2>SYSTEM LOGS</h2>
+            <ul id="log-list">
+                <li>Waiting for activity...</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Admin Message Overlay -->
+    <div id="admin-message-overlay" class="overlay hidden">
+        <div class="overlay-content">
+            <h2 class="glitch" data-text="SYSTEM ALERT">SYSTEM ALERT</h2>
+            <p id="admin-message-text"></p>
+            <button onclick="dismissOverlay()">ACKNOWLEDGE</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honeypot Command Center</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Local overrides for specific Admin grid */
+        body {
+            display: block;
+            /* Override flex from style.css if needed */
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: 80px 1fr 200px 180px;
+            height: 100vh;
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .header-panel {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-panel {
+            grid-row: 2 / -1;
+            overflow-y: auto;
+        }
+
+        .live-feed-panel {
+            grid-column: 2;
+            grid-row: 2;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logs-panel {
+            grid-column: 2;
+            grid-row: 3;
+            overflow-y: auto;
+        }
+
+        .messages-panel {
+            grid-column: 1 / -1;
+            grid-row: 4;
+            overflow-y: auto;
+        }
+
+        .messages-panel .msg-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #222;
+            font-size: 0.85em;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .messages-panel .msg-item .msg-meta {
+            color: var(--secondary-color);
+            white-space: nowrap;
+            min-width: 180px;
+        }
+
+        .messages-panel .msg-item .msg-text {
+            color: #fff;
+            word-break: break-word;
+        }
+
+        .messages-panel .msg-item .msg-time {
+            color: var(--text-dim);
+            font-size: 0.8em;
+            min-width: 80px;
+        }
+
+        /* Scanline deco */
+        .deco-line {
+            height: 2px;
+            background: var(--text-color);
+            width: 100%;
+            margin: 5px 0;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-grid">
+        <header class="panel header-panel">
+            <div class="header-content">
+                <h1 class="glitch" data-text="HONEYPOT COMMAND CENTER">HONEYPOT COMMAND CENTER</h1>
+                <div class="system-controls">
+                    <button onclick="openFlagRef()"
+                        style="border-color: var(--main-color); color: var(--main-color);">FLAG REFERENCE</button>
+                    <button onclick="openBanModal()"
+                        style="border-color: var(--alert-color); color: var(--alert-color);">MANAGE BANS</button>
+                    <button onclick="logout()">LOGOUT</button>
+                </div>
+            </div>
+            <div class="header-status">
+                SYSTEM STATUS: <span class="status-online">ONLINE</span> // <span class="status-secure">SECURE
+                    MODE</span>
+            </div>
+        </header>
+
+        <!-- Sidebar: Active Threats -->
+        <aside class="panel sidebar-panel">
+            <h2>ACTIVE THREATS / SCORES</h2>
+            <ul id="session-list">
+                <!-- Session items will be injected here -->
+                <li class="placeholder">SCANNING FOR THREATS...</li>
+            </ul>
+        </aside>
+
+        <!-- Main Content (Live Controls) -->
+        <div class="panel live-feed-panel">
+            <h3>INTERCEPTION CONTROLS <span id="selected-ip" style="float:right; color:var(--secondary-color)">NO TARGET
+                    SELECTED</span></h3>
+            <div class="deco-line"></div>
+
+            <div id="controls-panel" style="display:none; padding-top: 20px;">
+                <div style="display:flex; gap: 10px; margin-bottom:10px;">
+                    <input type="text" id="cmd-input" placeholder="INJECT SHELL COMMAND..." style="flex:1;">
+                    <button onclick="executeCommand()">EXECUTE</button>
+                </div>
+                <div style="display:flex; gap: 10px;">
+                    <button onclick="messageSelected()" style="flex:1;">SEND MESSAGE</button>
+                    <button onclick="kickSelected()"
+                        style="flex:1; border-color: var(--alert-color); color: var(--alert-color);">TERMINATE
+                        CONNECTION</button>
+                    <button onclick="banSelected()"
+                        style="flex:1; background: var(--alert-color); color: #000; border-color: var(--alert-color); font-weight:bold;">BAN
+                        IP</button>
+                </div>
+            </div>
+
+            <div style="flex:1; display:flex; align-items:center; justify-content:center; opacity:0.3; text-align:center;"
+                id="placeholder-msg">
+                <div>
+                    [WAITING FOR TARGET SELECTION]<br>
+                    <span style="font-size:3rem;">⚠</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Footer -->
+        <div class="panel logs-panel">
+            <h3>SYSTEM LOGS</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">TIME</th>
+                        <th style="width: 120px;">IP ORIGIN</th>
+                        <th>COMMAND PAYLOAD</th>
+                        <th style="width: 100px;">SESSION ID</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-body">
+                    <!-- Logs go here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Messages Panel -->
+        <div class="panel messages-panel">
+            <h3>📩 USER MESSAGES</h3>
+            <div id="messages-container">
+                <div style="padding: 10px; color: #666; opacity: 0.5;">No messages yet...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ban Management Modal (OUTSIDE grid) -->
+    <div id="ban-modal" class="overlay hidden">
+        <div class="overlay-content" style="width: 600px;">
+            <h2>BANNED IP REGISTRY</h2>
+            <ul id="banned-ip-list"
+                style="text-align: left; max-height: 300px; overflow-y: auto; list-style: none; padding: 0;">
+                <li>LOADING...</li>
+            </ul>
+            <button onclick="closeBanModal()" style="margin-top: 20px;">CLOSE REGISTRY</button>
+        </div>
+    </div>
+
+    <!-- Flag Reference Modal (OUTSIDE grid) -->
+    <div id="flag-modal" class="overlay hidden">
+        <div class="overlay-content" style="width: 700px;">
+            <h2>🏴 FLAG REFERENCE</h2>
+            <div id="flag-ref-content" style="text-align: left; max-height: 400px; overflow-y: auto;"></div>
+            <button onclick="closeFlagModal()" style="margin-top: 20px;">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- Audio for alerts -->
+    <audio id="alert-sound"></audio>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // Check Auth
+        if (!sessionStorage.getItem('admin_auth')) {
+            window.location.href = 'admin-login.html';
+        }
+
+        function logout() {
+            sessionStorage.removeItem('admin_auth');
+            window.location.href = 'admin-login.html';
+        }
+
+        const socket = io();
+        const logsBody = document.getElementById('logs-body');
+        const sessionList = document.getElementById('session-list');
+        const controlsPanel = document.getElementById('controls-panel');
+        const placeholderMsg = document.getElementById('placeholder-msg');
+        const selectedIpSpan = document.getElementById('selected-ip');
+        const cmdInput = document.getElementById('cmd-input');
+
+        let selectedSid = null;
+        let sessions = {};
+
+        // Sound Synthesis
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playAlert() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sawtooth'; // More aggressive sound
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // Socket Events
+        socket.on('new_log', (log) => {
+            addLogToTable(log);
+            if (!sessions[log.session_id]) {
+                sessions[log.session_id] = {
+                    ip: log.ip,
+                    status: 'active',
+                    score: 0,
+                    flags: 0
+                };
+                renderSessionList();
+            }
+        });
+
+        const banModal = document.getElementById('ban-modal');
+        const bannedList = document.getElementById('banned-ip-list');
+
+        function openBanModal() {
+            banModal.classList.remove('hidden');
+            socket.emit('admin_action', { action: 'get_banned' });
+        }
+
+        function closeBanModal() {
+            banModal.classList.add('hidden');
+        }
+
+        function unbanIp(ip) {
+            if (confirm(`UNBAN IP: ${ip}?`)) {
+                socket.emit('admin_action', { action: 'unban', ip: ip });
+            }
+        }
+
+        socket.on('banned_list', (data) => {
+            bannedList.innerHTML = '';
+            if (data.ips.length === 0) {
+                bannedList.innerHTML = '<li style="padding:10px; color:#666;">NO BANNED IPS FOUND</li>';
+                return;
+            }
+
+            data.ips.forEach(ip => {
+                const li = document.createElement('li');
+                li.style.cssText = "padding: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;";
+                li.innerHTML = `
+                    <span style="color: var(--alert-color);">${ip}</span>
+                    <button onclick="unbanIp('${ip}')" style="padding: 5px 10px; font-size: 0.8em;">UNBAN</button>
+                `;
+                bannedList.appendChild(li);
+            });
+        });
+
+        socket.on('session_update', (data) => {
+            if (data.status === 'connected') {
+                sessions[data.sid] = {
+                    ip: data.ip,
+                    alias: data.alias || 'Unknown',
+                    status: 'active',
+                    score: 0,
+                    flags: 0
+                };
+                playAlert();
+            } else if (data.status === 'disconnected') {
+                delete sessions[data.sid];
+                if (selectedSid === data.sid) {
+                    selectedSid = null;
+                    selectedIpSpan.textContent = "NO TARGET SELECTED";
+                    controlsPanel.style.display = 'none';
+                    placeholderMsg.style.display = 'flex';
+                }
+            } else if (data.alias && sessions[data.sid]) {
+                // Name update
+                sessions[data.sid].alias = data.alias;
+            }
+            renderSessionList();
+        });
+
+        socket.on('score_update', (data) => {
+            if (sessions[data.sid]) {
+                sessions[data.sid].score = data.score;
+                sessions[data.sid].flags = data.flags_count;
+                renderSessionList();
+            }
+        });
+
+        function renderSessionList() {
+            sessionList.innerHTML = '';
+            const sids = Object.keys(sessions);
+
+            if (sids.length === 0) {
+                sessionList.innerHTML = '<li class="placeholder">SCANNING FOR THREATS...</li>';
+                return;
+            }
+
+            sids.forEach(sid => {
+                const session = sessions[sid];
+                const li = document.createElement('li');
+                li.className = 'session-item';
+                if (sid === selectedSid) li.classList.add('active');
+
+                li.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="session-ip">${escapeHtml(session.alias || 'Unknown')}</div>
+                        <button onclick="event.stopPropagation(); renameSession('${sid}')" style="padding:2px 6px; font-size:0.7em;">RENAME</button>
+                    </div>
+                    <div class="session-id" style="color: var(--secondary-color);">${session.ip} // ID: ${sid.substring(0, 8)}</div>
+                    <div style="margin-top: 5px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.8em;">
+                            <span style="color: var(--main-color);">SCORE: ${session.score}</span>
+                            <span style="color: #ff6600;">FLAGS: ${session.flags}/10</span>
+                        </div>
+                        <div style="background:#222; height:4px; border-radius:2px; margin-top:3px;">
+                            <div style="background:var(--main-color); height:100%; width:${Math.min((session.score / 440) * 100, 100)}%; border-radius:2px; transition:width 0.3s;"></div>
+                        </div>
+                    </div>
+                `;
+
+                li.onclick = () => selectSession(sid);
+                sessionList.appendChild(li);
+            });
+        }
+
+        function selectSession(sid) {
+            selectedSid = sid;
+            const s = sessions[sid];
+            selectedIpSpan.textContent = `${s.alias || s.ip} (${s.ip})`;
+            controlsPanel.style.display = 'block';
+            placeholderMsg.style.display = 'none';
+            renderSessionList();
+        }
+
+        function renameSession(sid) {
+            const newName = prompt('ENTER NEW NAME FOR THIS IP:');
+            if (newName && newName.trim()) {
+                socket.emit('admin_action', { action: 'rename', sid: sid, name: newName.trim() });
+            }
+        }
+
+        const flagModal = document.getElementById('flag-modal');
+        function openFlagRef() {
+            flagModal.classList.remove('hidden');
+            fetch('/api/flags').then(r => r.json()).then(data => {
+                const container = document.getElementById('flag-ref-content');
+                let html = `<div style="margin-bottom:10px; color:var(--main-color);">TOTAL FLAGS: ${data.total_flags} // MAX SCORE: ${data.max_score}</div>`;
+                html += '<table style="width:100%; font-size:0.85em;">';
+                html += '<tr style="color:var(--secondary-color);"><th style="text-align:left;padding:5px;">PATH</th><th>PTS</th><th>DIFFICULTY</th><th>FLAG</th></tr>';
+                data.flags.forEach(f => {
+                    const diffColor = f.difficulty === 'Easy' ? '#00ff00' : f.difficulty === 'Medium' ? '#ffaa00' : f.difficulty === 'Hard' ? '#ff4444' : '#ff00ff';
+                    html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px; color:#ccc;">${f.path}</td><td style="text-align:center; color:var(--main-color);">${f.points}</td><td style="text-align:center; color:${diffColor};">${f.difficulty}</td><td style="color:#888; font-size:0.8em;">${f.flag}</td></tr>`;
+                });
+                html += '</table>';
+                container.innerHTML = html;
+            });
+        }
+        function closeFlagModal() { flagModal.classList.add('hidden'); }
+
+        function executeCommand() {
+            const cmd = cmdInput.value;
+            if (!cmd || !selectedSid) return;
+            socket.emit('admin_action', { action: 'execute', sid: selectedSid, command: cmd });
+            cmdInput.value = '';
+        }
+
+        function kickSelected() {
+            if (!selectedSid) return;
+            if (confirm('TERMINATE CONNECTION?')) {
+                socket.emit('admin_action', { action: 'kick', sid: selectedSid });
+            }
+        }
+
+        function banSelected() {
+            if (!selectedSid) return;
+            if (confirm('PERMANENTLY BAN THIS IP ADDRESS?')) {
+                socket.emit('admin_action', { action: 'ban', sid: selectedSid });
+            }
+        }
+
+        function messageSelected() {
+            if (!selectedSid) return;
+            const msg = prompt('ENTER MESSAGE:');
+            if (msg) {
+                socket.emit('admin_action', { action: 'message', sid: selectedSid, message: msg });
+            }
+        }
+
+        function addLogToTable(log) {
+            const row = document.createElement('tr');
+            const date = new Date(log.timestamp);
+            row.innerHTML = `
+                <td style="color:var(--text-dim);">${date.toLocaleTimeString()}</td>
+                <td style="color:var(--secondary-color);">${log.ip}</td>
+                <td style="color:#fff;">${escapeHtml(log.command)}</td>
+                <td style="font-family:monospace; color:var(--text-dim);">${log.session_id.substring(0, 8)}</td>
+            `;
+            logsBody.insertBefore(row, logsBody.firstChild);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function clearLogs() {
+            logsBody.innerHTML = '';
+        }
+
+        fetch('/api/logs').then(res => res.json()).then(data => {
+            data.forEach(log => {
+                addLogToTable(log);
+                if (!sessions[log.session_id]) updateSession(log.session_id, log.ip, 'connected');
+            });
+        });
+
+        // User Messages
+        const messagesContainer = document.getElementById('messages-container');
+
+        socket.on('user_message', (data) => {
+            playAlert();
+            const date = new Date(data.timestamp);
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'msg-item';
+            msgDiv.innerHTML = `
+                <span class="msg-time">${date.toLocaleTimeString()}</span>
+                <span class="msg-meta">[${escapeHtml(data.alias)}] ${data.ip}</span>
+                <span class="msg-text">${escapeHtml(data.message)}</span>
+            `;
+            // Clear placeholder on first message
+            if (messagesContainer.children.length === 1 && messagesContainer.children[0].style) {
+                messagesContainer.innerHTML = '';
+            }
+            messagesContainer.insertBefore(msgDiv, messagesContainer.firstChild);
+        });
+
+    </script>
+</body>
+
+</html>
