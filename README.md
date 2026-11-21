@@ -41,6 +41,12 @@ pip install -r requirements.txt
 python app.py
 ```
 
+For any deployment outside your own machine, set a secret key first — the built-in default is for local development only:
+
+```bash
+SECRET_KEY=<a-long-random-value> python app.py
+```
+
 Then open http://127.0.0.1:5000/ in your browser. The login page is the entry point; the terminal opens after you enter the app.
 
 To try the CTF, open the terminal and explore — for example:

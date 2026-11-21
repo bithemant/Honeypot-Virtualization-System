@@ -1,11 +1,15 @@
+import datetime
+import os
+
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, disconnect
 from flask_cors import CORS
 from simulator import VirtualShell, FLAGS, MAX_SCORE
-import datetime
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
-app.config['SECRET_KEY'] = 'secret!'
+# Secret key from the environment; the fallback is a dev-only placeholder.
+# Set SECRET_KEY to a long random value before deploying anywhere real.
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-only-change-me')
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
 
